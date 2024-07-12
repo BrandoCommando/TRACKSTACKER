@@ -1,4 +1,4 @@
-part="xcross45";
+part="criss_cross";
 
 bottom_magnet=[8,3];
 side_magnet=[6.1,2.2];
@@ -70,6 +70,43 @@ module xcross45() {
   }
 }
 
+module linear_extrude2(height=5,center=false,convexity=3,twist=0,slices=20,scale=1.0,$fn=16) {
+  linear_extrude(height=height,center=center,convexity=convexity,twist=twist,slices=slices,scale=scale,$fn=$fn) children(0);
+  if($children>1)
+    translate([0,0,height/(center?2:1)]) children([1:$children-1]);
+}
+module rotate_extrude2(angle=360,convexity=3,$fn=16) {
+  rotate_extrude(angle=abs(angle),convexity=convexity,$fn=$fn) children(0);
+  if($children>1)
+    rotate([-90,-90,angle]) children([1:$children-1]);
+}
+module curvez(angle=45,radius=10,lead=10,holes=-1,ends=1) {
+  holes=holes>-1?holes:max(1,floor(radius/12));
+  translate([lead,0]) rotate([0,0,90]) rotate([90,0])
+  difference() {
+    union() {
+      translate([0,0,-lead]) linear_extrude(lead,convexity=3) end_profile();
+      translate([0,angle>0?radius:-radius]) rotate([-angle,0]) translate([0,angle>0?-radius:radius,0]) mirror([0,0,0]) {
+        difference() {
+          linear_extrude(lead,convexity=3) end_profile();
+          if(ends!=0&&ends!=3)
+            translate([0,0,lead]) mirror([0,0,1]) end_features();
+        }
+        if($children>0)
+          translate([0,0,lead]) rotate([-90,-90]) children();
+      }
+      translate([0,0,0]) rotate([90,0,180]) translate([0,0,angle>0?radius:-radius]) rotate([0,angle>0?90:-90]) rotate_extrude(angle=abs(angle),convexity=3,$fn=80) intersection() {
+        translate([radius,0])
+          rotate([0,0,angle>0?90:-90]) end_profile();
+        translate([0,-20]) square([25+radius,40]);
+      }
+    }
+    if(ends) {
+    if(ends!=2)
+    translate([0,0,-lead-.01]) end_features();
+    }
+  }
+}
 module curve(angle=45,radius=10,lead=10,holes=-1,ends=1) {
   holes=holes>-1?holes:max(1,floor(radius/12));
   translate([lead,-radius]) rotate([0,0,90]) rotate([90,0])
@@ -101,7 +138,23 @@ module curve(angle=45,radius=10,lead=10,holes=-1,ends=1) {
       }
   }
 }
-module criss_cross(lead=0,holes=1,ends=1) {
+module dip(angle=20,radius=10) {
+  echo(str("Dip height = ",radius/(sin(angle)+cos(angle))*2));
+  union() {
+  translate([0,0,-.01]) linear_extrude(.02) children();
+  translate([0,-radius,0]) rotate([90,0,90]) rotate_extrude2(angle=angle ,$fn=64) {
+    translate([radius,0]) children();
+    translate([0,radius,-.01]) linear_extrude(.02) children();
+    translate([0,radius])
+    rotate([90,0,90]) mirror([1,0]) translate([-radius,0,-.01]) rotate_extrude2(angle=angle*2,$fn=64) {
+      translate([radius,0]) children();
+      translate([0,radius,-.01]) linear_extrude(.02) children();
+      translate([0,radius]) rotate([-90,0,90]) mirror([1,0]) translate([-radius,0]) rotate_extrude(angle=-angle,$fn=64) translate([radius,0]) children();
+    }
+   }
+  }
+}
+module criss_cross(lead=0,under=0,holes=1,ends=1) {
   z=1;
   zang=50;
   lead1=is_list(lead)?lead[0]:lead;
@@ -144,7 +197,13 @@ module criss_cross(lead=0,holes=1,ends=1) {
           end_features();
     mirrorx(tlen) rotate([0,90]) rotate([0,0,90]) end_features();
    }
-     translate([tlen/2,20,5.5]) rotate([90,0]) translate([0,0,-lead2-.01]) cylinder(d=11,h=40.02+lead2*2,$fn=64);
+     translate([tlen/2,20,5.5]) rotate([90,0]) translate([0,0,-.01]) { 
+       linear_extrude2(lead2) { circle(d=11,$fn=64);
+         dip(angle=30,radius=10.02) circle(d=11,$fn=64);
+         
+       }
+       translate([0,0,20.02+lead2*2]) mirror([0,0,1]) cylinder(d=11,h=lead2,$fn=64);
+     }
      if(holes){
      mirrorx(tlen)
       translate([11,0,-9.51]) cylinder(d=bottom_magnet[0]+.1,h=bottom_magnet[1]+1,$fn=80);
