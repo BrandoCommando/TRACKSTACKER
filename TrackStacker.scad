@@ -1,4 +1,4 @@
-part="criss_cross";
+part="xcross";
 
 bottom_magnet=[8,3];
 side_magnet=[6.1,2.2];
@@ -168,7 +168,7 @@ module criss_cross(lead=0,under=0,holes=1,ends=1) {
   difference() {
     union() {
       translate([0,-12.5,-9.5]) cube([tlen,25,9.5]);
-      if(lead2>2.5) mirrory() translate([tlen/2,tlen/2]) rotate([0,0,0]) rotate([90,0])     translate([0,0,10-lead2]) difference() {
+      if(lead2>2.5) mirrory() translate([tlen/2,tlen/2]) rotate([0,0,0]) rotate([90,0]) translate([0,0,lead2]) mirror([0,0,1]) {
         linear_extrude(lead2) end_profile(0);
       }
       translate([tlen/2,10,5.5]) rotate([90,0]) rotate([0,0,180]) rotate_extrude(angle=180,convexity=3) translate([5.5,0]) square([2,20]);
@@ -197,12 +197,11 @@ module criss_cross(lead=0,under=0,holes=1,ends=1) {
           end_features();
     mirrorx(tlen) rotate([0,90]) rotate([0,0,90]) end_features();
    }
-     translate([tlen/2,20,5.5]) rotate([90,0]) translate([0,0,-.01]) { 
-       linear_extrude2(lead2) { circle(d=11,$fn=64);
-         dip(angle=30,radius=10.02) circle(d=11,$fn=64);
-         
-       }
-       translate([0,0,20.02+lead2*2]) mirror([0,0,1]) cylinder(d=11,h=lead2,$fn=64);
+     translate([tlen/2,10,5.5]) rotate([90,0]) translate([0,0,-.01]) { 
+       translate([0,0,-5]) cylinder(d=11,h=5+lead2+.02,$fn=64);
+       translate([0,0,lead2]) dip(angle=30,radius=10.02) circle(d=11,$fn=64);
+       translate([0,0,25.02+lead2*2]) mirror([0,0,1]) cylinder(d=11,h=5+lead2+.02,$fn=64);
+       //cylinder(d=11,h=20.02+lead2*2,$fn=64);
      }
      if(holes){
      mirrorx(tlen)
