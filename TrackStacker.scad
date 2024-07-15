@@ -3,66 +3,79 @@ part="xcross";
 bottom_magnet=[8,3];
 side_magnet=[6.1,2.2];
 triad_len=17.32;
-text="TRACKSTACKER";
+text="PBD";
 text_depth=-1;
 text_size=18;
 text_font="";
 
 if(part=="bend")
   bend();
-if(part=="funnel")
+else if(part=="funnel")
   funnel(1);
-if(part=="R10")
+else if(part=="R10")
   right(10,5,1);
-if(part=="R20")
+else if(part=="R20")
   right(20,10,2);
-if(part=="R30")
+else if(part=="R30")
   right(30,15,3);
-if(part=="4510")
+else if(part=="4510")
   curve(45,10,5,1);
-if(part=="4520")
+else if(part=="4520")
   curve(45,20,10.4,2);
-if(part=="4530")
+else if(part=="4530")
   curve(45,30,15,3);
-if(part=="S20")
+else if(part=="S20")
   straight(20);
-if(part=="S40")
+else if(part=="S40")
   straight(40);
-if(part=="S80")
+else if(part=="S80")
   straight(80);
-if(part=="S160")
+else if(part=="S160")
   straight(160);
-if(part=="cross")
+else if(part=="cross")
   cross();
-if(part=="chaos_box_inner")
-  chaos_box(1);
-if(part=="chaos_box_outer")
-  chaos_box(0);
-if(part=="bucket")
-  bucket();
-if(part=="bucket_return")
-  bucket([100,60,85],0,text,bank=1,carousel=1);
-if(part=="xcross45")
+else if(part=="criss_cross")
+  criss_cross();
+else if(part=="xcross")
+  xcross();
+else if(part=="xcross45")
   xcross45();
-if(part=="y")
+else if(part=="chaos_box_inner")
+  chaos_box(1);
+else if(part=="chaos_box_outer")
+  chaos_box(0);
+else if(part=="bucket")
+  bucket();
+else if(part=="bucket_return")
+  bucket([100,60,40],0,text,bank=1,carousel=1);
+else if(part=="y")
   why();
-if(part=="button")
+else if(part=="button")
   button();
-if(part=="Z1")
+else if(part=="Z1")
   zlift(1);
-if(part=="Z2")
+else if(part=="Z2")
   zlift(2);
-if(part=="Z3")
+else if(part=="Z3")
   zlift(3);
-if(part=="triad")
+else if(part=="triad")
   triad();
-
+else {
+  *translate([0,0,10]) rotate([0,90])
+  rotate_extrude(angle=45,$fn=96) intersection() {
+    translate([0,-20]) square([50,40]);
+    translate([10,0]) rotate([0,0,90]) end_profile();
+  }
+}
+module xcross() {
+  criss_cross(lead=[0,0],1,1);
+}
 module xcross45() {
   criss_cross(lead=[0,0],1,1);
   *translate([-40,15]) why();
   *translate([5,30]) curve(90,10,5,0,0);
-  *translate([0,30]) straight(5);
-  *mirror([1,0]) mirror([0,1,0]) difference() {
+  translate([0,30]) straight(5);
+  mirror([1,0]) mirror([0,1,0]) difference() {
 //    mirror([0,1]) linear_extrude(
     curve(25,5,5,1,3)
       mirror([0,1]) curve(25,5,5,0,2);
@@ -399,7 +412,7 @@ module bucket(dims=[220,60,85],inset=1,text="",bank=0,carousel=0) {
       rcube(dims,r=5);
       if(carousel)
       {
-        translate([-15,0,0]) rcube([15,dims[1],6],7);
+        translate([-15,0,0]) rcube([30,dims[1],10],7);
         translate([-8,0]) cube([16,14,6]);
       }
     }
@@ -408,9 +421,10 @@ module bucket(dims=[220,60,85],inset=1,text="",bank=0,carousel=0) {
       bankr=5.5;
       maxy=dims[1]-2-bankr-bottom_magnet[1]-.5;
       minx=2+bankr;
-      bankz=42;
+      bankz=22;
+      bankz2=22;
       hull() {
-        for(pos=[[minx,minx,minx],[dims[0]-minx,minx,minx+6],
+        for(pos=[[minx,minx,minx],[dims[0]-minx,minx,bankz2],
           [minx,maxy,bankz],
           [dims[0]-minx,maxy,bankz],
           [minx,minx,dims[2]],[dims[0]-minx,minx,dims[2]],
@@ -424,8 +438,13 @@ module bucket(dims=[220,60,85],inset=1,text="",bank=0,carousel=0) {
       cylinder(d=11,h=15,$fn=48);
       translate([0,0,15]) rotate([-90,0]) {
         sphere(d=11,$fn=48);
+        rotate([0,90]) cylinder(d=11,h=10,$fn=48);
         cylinder(d=11,h=dims[1]-15,$fn=48);
-        translate([0,0,dims[1]-15]) sphere(d=11,$fn=48);
+        translate([0,-5.5,0]) cube([11,11,dims[1]-15]);
+        translate([0,0,dims[1]-15]) {
+          sphere(d=11,$fn=48);
+          rotate([0,90]) cylinder(d=11,h=10,$fn=48);
+        }
       }
     }
     
@@ -451,7 +470,7 @@ module bucket(dims=[220,60,85],inset=1,text="",bank=0,carousel=0) {
     }
     hholes=ceil((dims[0]-40) / 15);
     hdist=(dims[0]-40) / (hholes-1);
-    for(x=[20:hdist:dims[0]-20],z=[12,dims[2]-27]) translate([x,dims[1]-bottom_magnet[1],z]) rotate([-90,0]) cylinder(d=bottom_magnet[0]+.1,h=10,$fn=64);
+    for(x=[20:hdist:dims[0]-20],z=dims[2]>50?[12,dims[2]-27]:[12]) translate([x,dims[1]-bottom_magnet[1],z]) rotate([-90,0]) cylinder(d=bottom_magnet[0]+.1,h=10,$fn=64);
     translate([20,-.01,dims[2]-15]) mirror([0,0,1]) rotate([-90,0]) linear_extrude(3.02,convexity=3) {
       rsquare([dims[0]-40,20]);
       mirrorx(dims[0]-40) translate([-7,8]) difference() {
